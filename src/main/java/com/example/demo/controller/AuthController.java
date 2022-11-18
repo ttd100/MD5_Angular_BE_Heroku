@@ -46,7 +46,7 @@ public class AuthController {
     JwtTokenFilter jwtTokenFilter;
 
     @PostMapping("/signup")
-    public ResponseEntity<?> register(@Valid @RequestBody SignUpForm signUpForm) {
+    public ResponseEntity<?> register(@RequestBody SignUpForm signUpForm) {
         if (userService.existsByUsername(signUpForm.getUsername())) {
             return new ResponseEntity<>(new ResponMessage("nouser"), HttpStatus.OK);
         }
