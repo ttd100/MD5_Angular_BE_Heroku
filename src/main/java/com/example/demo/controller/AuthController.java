@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.request.ChangeAvatar;
+import com.example.demo.dto.request.ChangePasswordForm;
 import com.example.demo.dto.request.SignInForm;
 import com.example.demo.dto.request.SignUpForm;
 import com.example.demo.dto.response.JwtResponse;
@@ -107,6 +108,27 @@ public class AuthController {
             }
             return new ResponseEntity(new ResponMessage("yes"), HttpStatus.OK);
         } catch (UsernameNotFoundException exception) {
+            return new ResponseEntity<>(new ResponMessage(exception.getMessage()), HttpStatus.NOT_FOUND);
+        }
+    }
+    @PutMapping("/change/password")
+    public ResponseEntity<?> changePassword(HttpServletRequest request, @Valid @RequestBody ChangePasswordForm changePasswordForm){
+        String jwt = jwtTokenFilter.getJwt(request);
+        String username = jwtProvider.getUerNameFromToken(jwt);
+        User user;
+        try {
+            user = userService.findByUsername(username).orElseThrow(()-> new UsernameNotFoundException("User Not Found with -> username"+username));
+            boolean matches = passwordEncoder.matches(changePasswordForm.getCurrentPassword(), user.getPassword());
+            if(changePasswordForm.getNewPassword() != null){
+                if(matches){
+                    user.setPassword(passwordEncoder.encode(changePasswordForm.getNewPassword()));
+                    userService.save(user);
+                } else {
+                    return new ResponseEntity<>(new ResponMessage("no"), HttpStatus.OK);
+                }
+            }
+            return new ResponseEntity<>(new ResponMessage("yes"), HttpStatus.OK);
+        } catch (UsernameNotFoundException exception){
             return new ResponseEntity<>(new ResponMessage(exception.getMessage()), HttpStatus.NOT_FOUND);
         }
     }
