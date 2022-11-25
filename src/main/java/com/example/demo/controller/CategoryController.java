@@ -2,11 +2,14 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.response.ResponMessage;
 import com.example.demo.model.Category;
+import com.example.demo.model.User;
+import com.example.demo.security.userprincal.UserDetailService;
 import com.example.demo.service.category.ICategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +21,8 @@ import java.util.Optional;
 public class CategoryController {
     @Autowired
     private ICategoryService categoryService;
+    @Autowired
+    private UserDetailService userDetailService;
     @GetMapping
     public ResponseEntity<?> getList(){
         List<Category> listCategory = categoryService.findAll();
@@ -25,8 +30,15 @@ public class CategoryController {
     }
     @PostMapping
     public ResponseEntity<?> createCategory(@RequestBody Category category){
-        if (category.getName().trim().equals("")){
-            return new ResponseEntity<>(new ResponMessage("name_valid"), HttpStatus.NOT_FOUND);
+        User user = userDetailService.getCurrentUser();
+        if (user.getUsername().equals("Anonymous")){
+            return new ResponseEntity<>(new ResponMessage("no_login"),HttpStatus.OK);
+        }
+        if (categoryService.existsByName(category.getName())){
+            return new ResponseEntity<>(new ResponMessage("category_invalid"),HttpStatus.OK);
+        }
+        if (category.getAvatar().trim().equals("")){
+            return new ResponseEntity<>(new ResponMessage("avatar_not"), HttpStatus.NOT_FOUND);
         }
         categoryService.save(category);
         return new ResponseEntity<>(category,HttpStatus.OK);

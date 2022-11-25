@@ -21,6 +21,8 @@ public class Category {
     @NotBlank
     @Lob
     String avatar;
+    @ManyToOne
+    User user;
 
     @Override
     public String toString() {
