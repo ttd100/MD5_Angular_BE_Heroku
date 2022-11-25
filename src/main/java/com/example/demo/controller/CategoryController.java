@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -18,8 +19,9 @@ public class CategoryController {
     @Autowired
     private ICategoryService categoryService;
     @GetMapping
-    public ResponseEntity<?> getList(Pageable pageable){
-        return ResponseEntity.ok(categoryService.findAll(pageable));
+    public ResponseEntity<?> getList(){
+        List<Category> listCategory = categoryService.findAll();
+        return new ResponseEntity<>(listCategory,HttpStatus.OK);
     }
     @PostMapping
     public ResponseEntity<?> createCategory(@RequestBody Category category){
