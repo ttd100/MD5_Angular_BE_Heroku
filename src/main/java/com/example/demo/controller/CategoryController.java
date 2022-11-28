@@ -28,6 +28,7 @@ public class CategoryController {
         List<Category> listCategory = categoryService.findAll();
         return new ResponseEntity<>(listCategory,HttpStatus.OK);
     }
+
     @PostMapping
     public ResponseEntity<?> createCategory(@RequestBody Category category){
         User user = userDetailService.getCurrentUser();
@@ -41,7 +42,7 @@ public class CategoryController {
             return new ResponseEntity<>(new ResponMessage("avatar_not"), HttpStatus.NOT_FOUND);
         }
         categoryService.save(category);
-        return new ResponseEntity<>(category,HttpStatus.OK);
+        return new ResponseEntity<>(new ResponMessage("create_success"),HttpStatus.OK);
     }
     @GetMapping("{id}")
     public ResponseEntity<?> findById(@PathVariable("id") Category category){
