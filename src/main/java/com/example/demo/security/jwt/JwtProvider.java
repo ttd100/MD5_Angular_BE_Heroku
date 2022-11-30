@@ -14,6 +14,14 @@ public class JwtProvider {
     private static final Logger logger = LoggerFactory.getLogger(JwtProvider.class);
     private String jwtSecret = "chinh.nguyen@codegym.vn";
     private int jwtExpiration = 86400;
+
+    public String createEmailToken(String username){
+        return Jwts.builder().setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(new Date().getTime()+jwtExpiration*1000))
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .compact();
+    }
     public String createToken(Authentication authentication){
         UserPrinciple userPrinciple = (UserPrinciple) authentication.getPrincipal();
         return Jwts.builder().setSubject(userPrinciple.getUsername())
@@ -22,6 +30,7 @@ public class JwtProvider {
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();
     }
+
     public boolean validateToken(String token){
         try {
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);

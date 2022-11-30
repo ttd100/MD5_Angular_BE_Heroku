@@ -43,27 +43,37 @@ public class CategoryController {
         }
         categoryService.save(category);
         return new ResponseEntity<>(new ResponMessage("create_success"),HttpStatus.OK);
+
+
     }
     @GetMapping("{id}")
     public ResponseEntity<?> findById(@PathVariable("id") Category category){
         return category == null? new ResponseEntity<>(HttpStatus.NOT_FOUND) : ResponseEntity.ok(category);
     }
-    @PutMapping("{id}")
-    public ResponseEntity<?> updateCategory(@PathVariable("id")Long id, @RequestBody Category category){
-        Optional<Category> optionalCategory = categoryService.findById(id);
-        if (!optionalCategory.isPresent()){
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    @PutMapping("/{id}")
+    public ResponseEntity<?>updateCategory(@PathVariable Long id,@RequestBody Category categories){
+        Optional<Category> categories1 = categoryService.findById(id);
+        if (!categories1.isPresent()){
+            return new ResponseEntity<>(new ResponMessage("not_found"),HttpStatus.OK);
         }
-        category.setId(id);
-        categoryService.save(category);
-        return new ResponseEntity<>(new ResponMessage("Update success"),HttpStatus.OK);
+        if (categories.getName().trim().equals("")){
+            return new ResponseEntity<>(new ResponMessage("category_not"),HttpStatus.OK);
+        }
+        if (categoryService.existsByName(categories.getName())){
+            return new ResponseEntity<>(new ResponMessage("category_existed"),HttpStatus.OK);
+        }
+        categories1.get().setName(categories.getName());
+        categories1.get().setAvatar(categories.getAvatar());
+        categoryService.save(categories1.get());
+        return new ResponseEntity<>(new ResponMessage("update_success"),HttpStatus.OK);
     }
-    @DeleteMapping("{id}")
-    public ResponseEntity<?> deleteCategory(@PathVariable("id") Category category){
-        if (category == null){
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?>deleteById(@PathVariable Long id){
+        Optional<Category>categories = categoryService.findById(id);
+        if (!categories.isPresent()){
+            return new ResponseEntity<>(new ResponMessage("not_found"),HttpStatus.OK);
         }
-        categoryService.deleteById(category.getId());
-        return ResponseEntity.ok(new ResponMessage("delete"));
+        categoryService.deleteById(id);
+        return new ResponseEntity<>(new ResponMessage("delete_success!!!"),HttpStatus.OK);
     }
 }

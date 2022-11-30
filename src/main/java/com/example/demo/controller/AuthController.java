@@ -1,9 +1,6 @@
 package com.example.demo.controller;
 
-import com.example.demo.dto.request.ChangeAvatar;
-import com.example.demo.dto.request.ChangePasswordForm;
-import com.example.demo.dto.request.SignInForm;
-import com.example.demo.dto.request.SignUpForm;
+import com.example.demo.dto.request.*;
 import com.example.demo.dto.response.JwtResponse;
 import com.example.demo.dto.response.ResponMessage;
 import com.example.demo.model.Role;
@@ -12,6 +9,7 @@ import com.example.demo.model.User;
 import com.example.demo.security.jwt.JwtProvider;
 import com.example.demo.security.jwt.JwtTokenFilter;
 import com.example.demo.security.userprincal.UserPrinciple;
+import com.example.demo.sendemail.ProvideSendEmail;
 import com.example.demo.service.impl.RoleServiceImpl;
 import com.example.demo.service.impl.UserServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +23,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.HashSet;
@@ -45,6 +44,36 @@ public class AuthController {
     JwtProvider jwtProvider;
     @Autowired
     JwtTokenFilter jwtTokenFilter;
+    @Autowired
+    ProvideSendEmail provideSendEmail;
+    @PostMapping("/send/email")
+    public ResponseEntity<?> sendEmail(@RequestBody SendEmail sendEmail){
+        User user;
+        user = userService.findByEmail(sendEmail.getSendEmail()).orElseThrow(()->new UsernameNotFoundException("User Not Found with -> username"));
+        String token = jwtProvider.createEmailToken(user.getUsername());
+        String linkReset = "http://localhost:4200/reset-password?token="+token;
+        provideSendEmail.sendSimpleMessage(sendEmail.getSendEmail(),"Thay doi mat khau",linkReset);
+        return new ResponseEntity<>("OK",HttpStatus.OK);
+    }
+    @PostMapping("/reset/password")
+    public ResponseEntity<?> resetPassword(HttpServletRequest request, @Valid @RequestBody ResetPassword resetPassword){
+
+        String jwt = jwtTokenFilter.getJwt(request);
+        String username = jwtProvider.getUerNameFromToken(jwt);
+        User user;
+
+        try {
+            user = userService.findByUsername(username).orElseThrow(()-> new UsernameNotFoundException("User Not Found with -> username"+username));
+            user.setPassword(passwordEncoder.encode(resetPassword.getNewpassword()));
+            userService.save(user);
+            return new ResponseEntity<>(new ResponMessage("yes"), HttpStatus.OK);
+
+
+        } catch (UsernameNotFoundException exception){
+            return new ResponseEntity<>(new ResponMessage(exception.getMessage()), HttpStatus.NOT_FOUND);
+        }
+    }
+
 
     @PostMapping("/signup")
     public ResponseEntity<?> register(@RequestBody SignUpForm signUpForm) {
@@ -132,4 +161,5 @@ public class AuthController {
             return new ResponseEntity<>(new ResponMessage(exception.getMessage()), HttpStatus.NOT_FOUND);
         }
     }
+
 }
