@@ -49,11 +49,16 @@ public class AuthController {
     @PostMapping("/send/email")
     public ResponseEntity<?> sendEmail(@RequestBody SendEmail sendEmail){
         User user;
-        user = userService.findByEmail(sendEmail.getSendEmail()).orElseThrow(()->new UsernameNotFoundException("User Not Found with -> username"));
-        String token = jwtProvider.createEmailToken(user.getUsername());
-        String linkReset = "https://stardatjav06.netlify.app/reset-password?token="+token;
-        provideSendEmail.sendSimpleMessage(sendEmail.getSendEmail(),"Thay doi mat khau",linkReset);
-        return new ResponseEntity<>(linkReset,HttpStatus.OK);
+        if (userService.existsByEmail(sendEmail.getSendEmail())){
+            user = userService.findByEmail(sendEmail.getSendEmail()).orElseThrow(()->new UsernameNotFoundException("Email Not Found with -> email"));
+            String token = jwtProvider.createEmailToken(user.getUsername());
+            String linkReset = "https://stardatjav06.netlify.app/reset-password?token="+token;
+            provideSendEmail.sendSimpleMessage(sendEmail.getSendEmail(),"Thay doi mat khau",linkReset);
+            return new ResponseEntity<>(linkReset,HttpStatus.OK);
+        }else {
+            return new ResponseEntity<>(new ResponMessage("Email not existed"),HttpStatus.OK);
+        }
+
     }
     @PostMapping("/reset/password")
     public ResponseEntity<?> resetPassword(HttpServletRequest request, @Valid @RequestBody ResetPassword resetPassword){
