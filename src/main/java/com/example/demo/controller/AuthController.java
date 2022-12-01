@@ -51,7 +51,7 @@ public class AuthController {
         User user;
         user = userService.findByEmail(sendEmail.getSendEmail()).orElseThrow(()->new UsernameNotFoundException("User Not Found with -> username"));
         String token = jwtProvider.createEmailToken(user.getUsername());
-        String linkReset = "http://10.101.15.85:4200/reset-password?token="+token;
+        String linkReset = "https://stardatjav06.netlify.app/reset-password?token="+token;
         provideSendEmail.sendSimpleMessage(sendEmail.getSendEmail(),"Thay doi mat khau",linkReset);
         return new ResponseEntity<>("OK",HttpStatus.OK);
     }
