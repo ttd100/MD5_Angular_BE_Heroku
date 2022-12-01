@@ -56,7 +56,7 @@ public class AuthController {
             provideSendEmail.sendSimpleMessage(sendEmail.getSendEmail(),"Thay doi mat khau",linkReset);
             return new ResponseEntity<>(linkReset,HttpStatus.OK);
         }else {
-            return new ResponseEntity<>(new ResponMessage("Email not existed"),HttpStatus.OK);
+            return new ResponseEntity<>(new ResponMessage("no"),HttpStatus.OK);
         }
 
     }
