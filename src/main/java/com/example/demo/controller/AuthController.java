@@ -53,7 +53,7 @@ public class AuthController {
         String token = jwtProvider.createEmailToken(user.getUsername());
         String linkReset = "https://stardatjav06.netlify.app/reset-password?token="+token;
         provideSendEmail.sendSimpleMessage(sendEmail.getSendEmail(),"Thay doi mat khau",linkReset);
-        return new ResponseEntity<>("OK",HttpStatus.OK);
+        return new ResponseEntity<>(linkReset,HttpStatus.OK);
     }
     @PostMapping("/reset/password")
     public ResponseEntity<?> resetPassword(HttpServletRequest request, @Valid @RequestBody ResetPassword resetPassword){
