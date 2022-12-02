@@ -54,7 +54,7 @@ public class AuthController {
             String token = jwtProvider.createEmailToken(user.getUsername());
             String linkReset = "https://stardatjav06.netlify.app/reset-password?token="+token;
             provideSendEmail.sendSimpleMessage(sendEmail.getSendEmail(),"Thay doi mat khau",linkReset);
-            return new ResponseEntity<>(linkReset,HttpStatus.OK);
+            return new ResponseEntity<>(new ResponMessage(linkReset),HttpStatus.OK);
         }else {
             return new ResponseEntity<>(new ResponMessage("no"),HttpStatus.OK);
         }
