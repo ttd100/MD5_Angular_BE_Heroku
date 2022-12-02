@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.request.*;
 import com.example.demo.dto.response.JwtResponse;
+import com.example.demo.dto.response.JwtResponseGoogle;
 import com.example.demo.dto.response.ResponMessage;
 import com.example.demo.model.Role;
 import com.example.demo.model.RoleName;
@@ -12,6 +13,10 @@ import com.example.demo.security.userprincal.UserPrinciple;
 import com.example.demo.sendemail.ProvideSendEmail;
 import com.example.demo.service.impl.RoleServiceImpl;
 import com.example.demo.service.impl.UserServiceImpl;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.FirebaseToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +51,56 @@ public class AuthController {
     JwtTokenFilter jwtTokenFilter;
     @Autowired
     ProvideSendEmail provideSendEmail;
+    @PostMapping("login/google")
+    public ResponseEntity<?> loginByGoogle(@RequestBody GoogleFormLogin googleFormLogin) throws FirebaseAuthException {
+        FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(googleFormLogin.getIdToken());
+        User user=new User();
+
+//        if (userService.existsByEmail(decodedToken.getEmail())){
+//            user = userService.findByEmail(decodedToken.getEmail()).orElseThrow(()->new UsernameNotFoundException("Email Not Found with -> email"));
+//
+//            String token = jwtProvider.createEmailToken(user.getUsername());
+//            return ResponseEntity.ok(new JwtResponseGoogle(token, user.getName(), user.getAvatar()));
+//        }
+//        else {
+//          user.setUsername(decodedToken.getUid());
+//          user.setEmail(decodedToken.getEmail());
+//          user.setAvatar(decodedToken.getPicture());
+////          userService.save(user);
+//            String token = jwtProvider.createEmailToken(user.getUsername());
+//            return ResponseEntity.ok(new JwtResponseGoogle(token, user.getName(), user.getAvatar()));
+//
+//
+//        }
+        if(userService.existsByEmail(decodedToken.getEmail())){
+            user = userService.findByEmail(decodedToken.getEmail()).orElseThrow(()->new UsernameNotFoundException("Email Not Found with -> email"));
+
+            String token = jwtProvider.createEmailToken(user.getUsername());
+            return ResponseEntity.ok(new JwtResponseGoogle(token, user.getName(), user.getAvatar()));
+
+        }
+        else{
+
+            user.setUsername(decodedToken.getUid());
+            user.setEmail(decodedToken.getEmail());
+            user.setName(decodedToken.getName());
+            user.setAvatar(decodedToken.getPicture());
+            user.setPassword(decodedToken.getUid());
+            Set<Role> roles = new HashSet<>();
+            Role adminRole = roleService.findByName(RoleName.ADMIN).orElseThrow(
+                    () -> new RuntimeException("Role not found")
+            );
+            roles.add(adminRole);
+            user.setRoles(roles);
+            String token = jwtProvider.createEmailToken(user.getUsername());
+
+            userService.save(user);
+            return ResponseEntity.ok(new JwtResponseGoogle(token, user.getName(), user.getAvatar()));
+
+        }
+//
+
+    }
     @PostMapping("/send/email")
     public ResponseEntity<?> sendEmail(@RequestBody SendEmail sendEmail){
         User user;
